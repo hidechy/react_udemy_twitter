@@ -63,6 +63,18 @@ const Auth: React.FC = () => {
     await auth.signInWithPopup(provider).catch((err) => alert(err.message));
   };
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLogin, setIsLogin] = useState(true);
+
+  const signInEmail = async () => {
+    await auth.signInWithEmailAndPassword(email, password);
+  };
+
+  const signUpEmail = async () => {
+    await auth.createUserWithEmailAndPassword(email, password);
+  }
+
   return (
     <Grid container component="main" className={classes.root}>
       <CssBaseline />
@@ -72,10 +84,13 @@ const Auth: React.FC = () => {
           <Avatar className={classes.avatar}>
             <LockOutlinedIcon />
           </Avatar>
+
           <Typography component="h1" variant="h5">
-            Sign in
+            {isLogin ? "Login" : "Register"}
           </Typography>
+
           <form className={classes.form} noValidate>
+
             <TextField
               variant="outlined"
               margin="normal"
@@ -86,7 +101,11 @@ const Auth: React.FC = () => {
               name="email"
               autoComplete="email"
               autoFocus
+
+              value={email}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setEmail(e.target.value)}}
             />
+
             <TextField
               variant="outlined"
               margin="normal"
@@ -97,6 +116,9 @@ const Auth: React.FC = () => {
               type="password"
               id="password"
               autoComplete="current-password"
+
+              value={password}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPassword(e.target.value)}}
             />
 
             <Button
@@ -106,7 +128,7 @@ const Auth: React.FC = () => {
               color="primary"
               className={classes.submit}
             >
-              Sign In
+              {isLogin ? "Login" : "Register"}
             </Button>
 
             <Button
