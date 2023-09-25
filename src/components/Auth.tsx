@@ -23,7 +23,9 @@ import {
   Link,
 
 } from "@material-ui/core";
-import { Email } from '@material-ui/icons';
+import { AccountCircle, Email } from '@material-ui/icons';
+
+import { updateUserProfile } from '../features/userSlice';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -72,8 +74,45 @@ const Auth: React.FC = () => {
     await auth.signInWithEmailAndPassword(email, password);
   };
 
+  const dispatch = useDispatch();
+
   const signUpEmail = async () => {
-    await auth.createUserWithEmailAndPassword(email, password);
+
+    const authuser = await auth.createUserWithEmailAndPassword(email, password);
+
+    let url = "";
+    if (avatarImage){
+
+      const S = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      const N = 16;
+      const randomChar = Array.from(crypto.getRandomValues(new Uint32Array(N))).map((n) => S[n % S.length]).join("");
+      const fileName = randomChar + "_" + avatarImage.name;
+
+      await storage.ref(`avatars/${fileName}`).put(avatarImage);
+      url = await storage.ref("avatars").child(fileName).getDownloadURL();
+    }
+
+    await authuser.user?.updateProfile({
+      displayName: username,
+      photoURL: url,
+    });
+
+    dispatch(
+      updateUserProfile({
+        displayName: username,
+        photoUrl: url,
+      })
+    );
+
+  }
+
+  const [username, setUsername] = useState("");
+  const [avatarImage, setAvatarImage] = useState<File | null>(null);
+  const onChangeImageHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files![0]){
+      setAvatarImage(e.target.files![0]);
+      e.target.value = "";
+    }
   }
 
   return (
@@ -91,6 +130,45 @@ const Auth: React.FC = () => {
           </Typography>
 
           <form className={classes.form} noValidate>
+
+            {!isLogin && <>
+
+              <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              id="username"
+              label="Username"
+              name="username"
+              autoComplete="username"
+              autoFocus
+
+              value={username}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setUsername(e.target.value)}}
+            />
+
+            <Box>
+              <IconButton>
+                <label>
+                  <AccountCircle
+                    fontSize='large'
+                    className={
+                      avatarImage
+                      ? styles.login_addIconLoaded
+                      : styles.login_addIcon
+                    }
+                  />
+                  <input
+                    className={styles.login_hiddenIcon}
+                    type='file'
+                    onChange={onChangeImageHandler}
+                  />
+                </label>
+              </IconButton>
+            </Box>
+
+            </>}
 
             <TextField
               variant="outlined"
@@ -156,7 +234,8 @@ const Auth: React.FC = () => {
               <Grid item xs>
                 <span className={styles.login_reset}>Forgot Password</span>
               </Grid>
-              <Grid item xs>
+
+              <Grid item>
                 <span className={styles.login_toggleMode} onClick={() => setIsLogin(!isLogin)}>
                   {isLogin ? "to Register" : "to Login"}
                 </span>
