@@ -23,9 +23,20 @@ import {
   Link,
 
 } from "@material-ui/core";
-import { AccountCircle, Email } from '@material-ui/icons';
+import { AccountCircle, Email, Send } from '@material-ui/icons';
 
 import { updateUserProfile } from '../features/userSlice';
+
+function getModalStyle() {
+  const top = 50;
+  const left = 50;
+
+  return {
+    top: `${top}%`,
+    left: `${left}%`,
+    transform: `translate(-${top}%, -${left}%)`
+  }
+}
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -56,6 +67,17 @@ const useStyles = makeStyles((theme) => ({
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
+
+  modal: {
+    outline: "none",
+    position: "absolute",
+    width: 400,
+    borderRadius: 10,
+    backgroundColor: "white",
+    boxShadow: theme.shadows[5],
+    padding: theme.spacing(10),
+  }
+
 }));
 
 const Auth: React.FC = () => {
@@ -113,6 +135,21 @@ const Auth: React.FC = () => {
       setAvatarImage(e.target.files![0]);
       e.target.value = "";
     }
+  }
+
+  const [openModal, setOpenModal] = React.useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const sendResetEmail = async (e: React.MouseEvent<HTMLElement>) => {
+    await auth
+      .sendPasswordResetEmail(resetEmail)
+      .then(() => {
+        setOpenModal(false);
+        setResetEmail("");
+      })
+      .catch((err) => {
+        alert(err.message);
+        setResetEmail("");
+      });
   }
 
   return (
@@ -237,8 +274,12 @@ const Auth: React.FC = () => {
             </Button>
 
             <Grid container>
+
               <Grid item xs>
-                <span className={styles.login_reset}>Forgot Password</span>
+                <span 
+                  className={styles.login_reset}
+                  onClick={() => setOpenModal(true)}
+                >Forgot Password</span>
               </Grid>
 
               <Grid item>
@@ -259,6 +300,27 @@ const Auth: React.FC = () => {
             </Button>
 
           </form>
+
+          <Modal open={openModal} onClose={() => setOpenModal(false)}>
+            <div style={getModalStyle()} className={classes.modal}>
+              <div className={styles.login_modal}>
+                <TextField
+                  InputLabelProps={{shrink: true}}
+                  type='email'
+                  name='email'
+                  label="Reset Email"
+                  value={resetEmail}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setResetEmail(e.target.value);
+                  }}
+                />
+                <IconButton onClick={sendResetEmail}>
+                  <Send />
+                </IconButton>
+              </div>
+            </div>
+          </Modal>
+
         </div>
       </Grid>
     </Grid>
