@@ -23,6 +23,7 @@ import {
   Link,
 
 } from "@material-ui/core";
+import { Email } from '@material-ui/icons';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -122,14 +123,45 @@ const Auth: React.FC = () => {
             />
 
             <Button
-              type="submit"
+              // type="submit"
               fullWidth
               variant="contained"
               color="primary"
               className={classes.submit}
+
+              startIcon={<Email />}
+              onClick={
+                isLogin
+                ? async () => {
+                  try {
+                    await signInEmail();
+                  }catch(err: any){
+                    alert(err.message);
+                  }
+                }
+                : async () => {
+                  try {
+                    await signUpEmail();
+                  }catch(err: any){
+                    alert(err.message);
+                  }
+                }
+              }
+
             >
               {isLogin ? "Login" : "Register"}
             </Button>
+
+            <Grid container>
+              <Grid item xs>
+                <span className={styles.login_reset}>Forgot Password</span>
+              </Grid>
+              <Grid item xs>
+                <span className={styles.login_toggleMode} onClick={() => setIsLogin(!isLogin)}>
+                  {isLogin ? "to Register" : "to Login"}
+                </span>
+              </Grid>
+            </Grid>
 
             <Button
               fullWidth
